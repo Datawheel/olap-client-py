@@ -7,5 +7,7 @@ Mondrian REST servers.
 __all__ = ("Query", "Server", "TesseractServer", "MondrianServer")
 
 from .exceptions import InvalidQueryError
-from .server import Query, Server
+from .query import Query
+from .server import Server
+from .mondrian.server import MondrianServer
 from .tesseract.server import TesseractServer

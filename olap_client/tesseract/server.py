@@ -7,7 +7,6 @@ from ..cube import (Cube, Dimension, Hierarchy, Level, Measure, Member,
                     NamedSet, Property)
 from ..exceptions import InvalidQueryError
 from ..server import Query, Server
-from .schema import TesseractSchema
 
 
 class TesseractServer(Server):
@@ -37,7 +36,7 @@ class TesseractServer(Server):
 
     async def fetch_cube(self, cube_name: str):
         client = http3.AsyncClient()
-        url = parse.urljoin(self.base_url, "cubes", cube_name)
+        url = parse.urljoin(self.base_url, "/".join(["cubes", cube_name]))
         request = await client.get(url)
         request.raise_for_status()
         raw_cube = request.json()

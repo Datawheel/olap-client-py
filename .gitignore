@@ -1,1 +1,10 @@
 *.pyc
+
+env
+.vscode
+
+Pipfile.lock
+
+.ipynb_checkpoints/
+
+dev.ipynb
