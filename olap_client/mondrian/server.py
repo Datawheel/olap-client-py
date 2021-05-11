@@ -3,7 +3,9 @@ Module that implements the Mondrian variant of the Server base class.
 """
 
 from urllib import parse
+
 from ..server import Query, Server
+
 
 class MondrianServer(Server):
     """Class for Mondrian REST server requests."""

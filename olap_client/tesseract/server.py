@@ -23,8 +23,9 @@ class TesseractServer(Server):
         """Converts the Query object into an URL for Tesseract OLAP."""
         if self.endpoint == TesseractEndpointType.LOGICLAYER:
             return TesseractServer.build_logiclayer_url(query)
-        elif self.endpoint == TesseractEndpointType.AGGREGATE:
-            return TesseractServer.build_aggregate_url(query)
+        # For the time being, efforts will be focused on the logiclayer endpoint
+        # elif self.endpoint == TesseractEndpointType.AGGREGATE:
+        #     return TesseractServer.build_aggregate_url(query)
         else:
             raise KeyError()
 
@@ -57,54 +58,56 @@ class TesseractServer(Server):
 
     def setEndpoint(self, endpoint_type: TesseractEndpointType):
         if endpoint_type == TesseractEndpointType.AGGREGATE:
-            raise NotImplementedError('Aggregate endpoint is not yet fully supported')
+            raise NotImplementedError("Aggregate endpoint is not yet fully supported")
         self.endpoint = endpoint_type
         return self
 
     @staticmethod
     def build_aggregate_url(query: Query):
         """Transforms a query instance into a tesseract-olap aggregate URL."""
+        # For the time being, efforts will be focused on the logiclayer endpoint
+        raise NotImplementedError
 
-        if len([measure for measure in query.measures if measure != ""]) == 0:
-            raise InvalidQueryError()
-        if len([drill for drill in query.drilldowns if drill != ""]) == 0:
-            raise InvalidQueryError()
+        # if len([measure for measure in query.measures if measure != ""]) == 0:
+        #     raise InvalidQueryError()
+        # if len([drill for drill in query.drilldowns if drill != ""]) == 0:
+        #     raise InvalidQueryError()
 
-        all_params = {
-            "captions[]": [
-                join_name(level, prop)
-                for level, prop in query.captions.items()
-            ],
-            "cuts[]": [
-                level + "." + ",".join(str(m) for m in members)
-                for level, members in query.cuts.items()
-            ],
-            "debug": query.booleans.get("debug"),
-            "drilldowns[]": query.drilldowns,
-            "exclude_default_members": query.booleans.get("exclude_default_members"),
-            "filters[]": [
-                calc + "." + ".".join(str(c) for c in conditions)
-                for calc, conditions in query.filters.items()
-            ],
-            "growth": "",
-            "limit": transform_limit(query.pagination),
-            "measures[]": query.measures,
-            "parents": query.booleans.get("parents"),
-            "properties[]": [
-                f"{level}.{prop}"
-                for level, props in query.properties.items()
-                for prop in props
-            ],
-            # "rate": "",
-            "sort": transform_sort(query.sorting),
-            "sparse": query.booleans.get("sparse"),
-            # "top_where": "",
-            "top": "",
-        }
+        # all_params = {
+        #     "captions[]": [
+        #         join_name(level, prop)
+        #         for level, prop in query.captions.items()
+        #     ],
+        #     "cuts[]": [
+        #         level + "." + ",".join(str(m) for m in members)
+        #         for level, members in query.cuts.items()
+        #     ],
+        #     "debug": query.booleans.get("debug"),
+        #     "drilldowns[]": query.drilldowns,
+        #     "exclude_default_members": query.booleans.get("exclude_default_members"),
+        #     "filters[]": [
+        #         calc + "." + ".".join(str(c) for c in conditions)
+        #         for calc, conditions in query.filters.items()
+        #     ],
+        #     "growth": "",
+        #     "limit": transform_limit(query.pagination),
+        #     "measures[]": query.measures,
+        #     "parents": query.booleans.get("parents"),
+        #     "properties[]": [
+        #         f"{level}.{prop}"
+        #         for level, props in query.properties.items()
+        #         for prop in props
+        #     ],
+        #     # "rate": "",
+        #     "sort": transform_sort(query.sorting),
+        #     "sparse": query.booleans.get("sparse"),
+        #     # "top_where": "",
+        #     "top": "",
+        # }
 
-        params = {k: v for k, v in all_params.items() if is_valid_value(v)}
-        search_params = parse.urlencode(params, True)
-        return f"cubes/{query.cube}/aggregate.{query.format}?{search_params}"
+        # params = {k: v for k, v in all_params.items() if is_valid_value(v)}
+        # search_params = parse.urlencode(params, True)
+        # return f"cubes/{query.cube}/aggregate.{query.format}?{search_params}"
 
     @staticmethod
     def build_logiclayer_url(query: Query):
