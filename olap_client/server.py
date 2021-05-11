@@ -1,5 +1,9 @@
-"""
-Module defining the Server base class.
+"""Main Server base class.
+
+The Server class is the base for all interactions with a data server. It should
+not be instanciated, as their methods are only interface templates and are not
+implemented.
+The final user will interact only with instances of these classes or subclasses.
 """
 
 from urllib import parse
@@ -7,6 +11,7 @@ from urllib import parse
 import httpx
 
 from .query import Query
+
 
 class Server:
     """Base class for OLAP servers to query.
@@ -16,7 +21,7 @@ class Server:
     """
 
     def __init__(self, base_url: str):
-        self.base_url = base_url
+        self.base_url = base_url.rstrip("/").lower() + "/"
 
     def build_query_url(self, query: Query):
         """Converts the Query object into an URL specific for the kind of server.

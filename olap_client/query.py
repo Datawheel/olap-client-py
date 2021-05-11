@@ -1,3 +1,9 @@
+"""Main Query class.
+
+The Query class holds the parameters that will later be used to execute a data
+request to the server.
+The final user will interact only with instances of these classes or subclasses.
+"""
 
 from collections import defaultdict
 from enum import Enum

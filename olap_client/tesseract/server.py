@@ -1,6 +1,8 @@
-"""Module that implements the Tesseract variant of the Server base class"""
+"""TesseractServer class.
 
-from typing import List
+A class extending the Server class, adapted for use with Tesseract OLAP servers.
+"""
+
 from urllib import parse
 
 import httpx
@@ -58,14 +60,15 @@ class TesseractServer(Server):
             request.raise_for_status()
         return request.json() if "json" in ext else request.content
 
-    def setEndpoint(self, endpoint_type: TesseractEndpointType):
+    def set_endpoint(self, endpoint_type: TesseractEndpointType):
+        """Sets the endpoint this Server instance will use to fetch data."""
         if endpoint_type == TesseractEndpointType.AGGREGATE:
             raise NotImplementedError("Aggregate endpoint is not yet fully supported")
         self.endpoint = endpoint_type
         return self
 
     @staticmethod
-    def build_aggregate_url(query: Query):
+    def build_aggregate_url(query: Query) -> str:
         """Transforms a query instance into a tesseract-olap aggregate URL."""
         # For the time being, efforts will be focused on the logiclayer endpoint
         raise NotImplementedError
@@ -74,6 +77,11 @@ class TesseractServer(Server):
         #     raise InvalidQueryError()
         # if len([drill for drill in query.drilldowns if drill != ""]) == 0:
         #     raise InvalidQueryError()
+
+        # transform_limit = lambda x: ("{0}.{1}" if x[1] else "{0}").format(*x)
+        #                             if x[0] is not None or x[1] is not None else None
+
+        # transform_sort = lambda x: "{0}.{1}".format(*x) if x[0] is not None else None
 
         # all_params = {
         #     "captions[]": [
@@ -112,7 +120,7 @@ class TesseractServer(Server):
         # return f"cubes/{query.cube}/aggregate.{query.format}?{search_params}"
 
     @staticmethod
-    def build_logiclayer_url(query: Query):
+    def build_logiclayer_url(query: Query) -> str:
         """Transforms a query instance into a tesseract-olap logiclayer URL."""
 
         all_params = {
@@ -141,13 +149,13 @@ class TesseractServer(Server):
             all_params[level] = ",".join(members)
 
         params = {k: v for k, v in all_params.items() if is_valid_value(v)}
-        return f"data.{query.format}?{parse.urlencode(params)}"
+        return "data.{ext}?{search}".format(ext=query.format, search=parse.urlencode(params))
 
 
-def join_name(*parts):
-    """Builds a Tesseract OLAP full name according to specifications.
+def join_name(*parts) -> str:
+    """Builds a Tesseract OLAP full name according to [specifications].
 
-    See [this page](https://github.com/tesseract-olap/tesseract/tree/master/tesseract-server/#naming) for more info.
+    [specifications]: https://github.com/tesseract-olap/tesseract/tree/master/tesseract-server/#naming
     """
     return ".".join(
         (f"[{part}]" for part in parts)
@@ -156,17 +164,10 @@ def join_name(*parts):
     )
 
 
-def is_valid_value(value):
+def is_valid_value(value) -> bool:
+    """Determines if `value` is worth serializing as a parameter for the URL."""
     if isinstance(value, (list, set)):
         return len(value) > 0
     elif isinstance(value, str):
         return value != ""
     return value is not None
-
-def transform_limit(x):
-    return ("{0}.{1}" if x[1] else "{0}").format(*x)
-            if x[0] is not None or x[1] is not None
-            else None
-
-def transform_sort(x):
-    return "{0}.{1}".format(*x) if x[0] is not None else None
