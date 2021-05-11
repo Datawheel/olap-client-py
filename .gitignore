@@ -8,3 +8,4 @@ Pipfile.lock
 .ipynb_checkpoints/
 
 dev.ipynb
+dev.py

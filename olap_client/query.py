@@ -28,7 +28,6 @@ class Query:
     drilldowns: Set[str] = set()
     filters: DefaultDict[str, tuple] = defaultdict(tuple)
     format: QueryFormat = QueryFormat.JSONRECORDS
-    extension: str = "jsonrecords"
     locale: Optional[str] = None
     measures: Set[str] = set()
     pagination: Tuple[int, int] = (None, None)
