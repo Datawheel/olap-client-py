@@ -3,7 +3,8 @@ Module defining the Server base class.
 """
 
 from urllib import parse
-import http3
+
+import httpx
 
 from .query import Query
 
@@ -47,8 +48,8 @@ class Server:
 
     async def query(self, query: Query):
         """Makes a request for the data specified in the Query object."""
-        client = http3.AsyncClient()
         url = parse.urljoin(self.base_url, self.build_query_url(query))
-        response = await client.get(url)
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
         response.raise_for_status()
         return response.json() if "json" in query.format else response.content

@@ -3,7 +3,7 @@
 from typing import List
 from urllib import parse
 
-import http3
+import httpx
 
 from ..cube import (Cube, Dimension, Hierarchy, Level, Measure, Member,
                     NamedSet, Property)
@@ -29,30 +29,32 @@ class TesseractServer(Server):
             raise KeyError()
 
     async def fetch_all_cubes(self):
-        client = http3.AsyncClient()
+        """Retrieves the list of available cubes from the server."""
         url = parse.urljoin(self.base_url, "cubes")
-        request = await client.get(url)
-        request.raise_for_status()
-        schema = request.json()
+        async with httpx.AsyncClient() as client:
+            request = await client.get(url)
+            request.raise_for_status()
+            schema = request.json()
         return list(cube_from_tesseract(cube) for cube in schema["cubes"])
 
     async def fetch_cube(self, cube_name: str):
-        client = http3.AsyncClient()
-        url = parse.urljoin(self.base_url, "/".join(["cubes", cube_name]))
-        request = await client.get(url)
-        request.raise_for_status()
-        raw_cube = request.json()
+        """Retrieves the information from a specific cube from the server."""
+        url = parse.urljoin(self.base_url, "cubes/{}" % cube_name)
+        async with httpx.AsyncClient() as client:
+            request = await client.get(url)
+            request.raise_for_status()
+            raw_cube = request.json()
         return cube_from_tesseract(raw_cube)
 
-    async def fetch_members(self, cube_name: str, level_name: str, ext = "jsonrecords"):
+    async def fetch_members(self, cube_name: str, level_name: str, ext = Format.JSONRECORDS):
         """Retrieves the list of members for a level in a cube."""
-        client = http3.AsyncClient()
-        url = parse.urljoin(self.base_url, f"members.{ext}")
+        url = parse.urljoin(self.base_url, "members.{}" % ext)
         search_params = {"cube": cube_name, "level": level_name}
-        request = await client.get(url, params=search_params)
-        request.raise_for_status()
+        async with httpx.AsyncClient() as client:
+            request = await client.get(url, params=search_params)
+            request.raise_for_status()
         return request.json() if "json" in ext else request.content
-    
+
     def setEndpoint(self, endpoint_type: TesseractEndpointType):
         if endpoint_type == TesseractEndpointType.AGGREGATE:
             raise NotImplementedError('Aggregate endpoint is not yet fully supported')
