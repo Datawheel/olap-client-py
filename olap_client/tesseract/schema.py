@@ -25,6 +25,11 @@ class TesseractDimensionType(str, Enum):
     STANDARD = "std"
 
 
+class TesseractEndpointType(str, Enum):
+    AGGREGATE = "aggregate"
+    LOGICLAYER = "logiclayer"
+
+
 class TesseractMeasureTypeStandard(BaseModel):
     units: Optional[str]
 

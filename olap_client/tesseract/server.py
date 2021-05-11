@@ -1,3 +1,5 @@
+"""Module that implements the Tesseract variant of the Server base class"""
+
 from typing import List
 from urllib import parse
 
@@ -7,8 +9,7 @@ from ..cube import (Cube, Dimension, Hierarchy, Level, Measure, Member,
                     NamedSet, Property)
 from ..exceptions import InvalidQueryError
 from ..server import Query, Server
-from .schema import TesseractSchema
-
+from .schema import TesseractEndpointType
 
 class TesseractServer(Server):
     """Class for tesseract server requests.
@@ -16,13 +17,13 @@ class TesseractServer(Server):
     By default generates URLs using the special LogicLayer endpoint.
     """
 
-    endpoint: str = "logiclayer"
+    endpoint: TesseractEndpointType = TesseractEndpointType.LOGICLAYER
 
     def build_query_url(self, query: Query):
         """Converts the Query object into an URL for Tesseract OLAP."""
-        if self.endpoint == "logiclayer":
+        if self.endpoint == TesseractEndpointType.LOGICLAYER:
             return TesseractServer.build_logiclayer_url(query)
-        elif self.endpoint == "aggregate":
+        elif self.endpoint == TesseractEndpointType.AGGREGATE:
             return TesseractServer.build_aggregate_url(query)
         else:
             raise KeyError()
@@ -37,7 +38,7 @@ class TesseractServer(Server):
 
     async def fetch_cube(self, cube_name: str):
         client = http3.AsyncClient()
-        url = parse.urljoin(self.base_url, "cubes", cube_name)
+        url = parse.urljoin(self.base_url, "/".join(["cubes", cube_name]))
         request = await client.get(url)
         request.raise_for_status()
         raw_cube = request.json()
@@ -51,22 +52,21 @@ class TesseractServer(Server):
         request = await client.get(url, params=search_params)
         request.raise_for_status()
         return request.json() if "json" in ext else request.content
+    
+    def setEndpoint(self, endpoint_type: TesseractEndpointType):
+        if endpoint_type == TesseractEndpointType.AGGREGATE:
+            raise NotImplementedError('Aggregate endpoint is not yet fully supported')
+        self.endpoint = endpoint_type
+        return self
 
     @staticmethod
     def build_aggregate_url(query: Query):
         """Transforms a query instance into a tesseract-olap aggregate URL."""
 
-        if len(measure for measure in query.measures if measure != "") == 0:
+        if len([measure for measure in query.measures if measure != ""]) == 0:
             raise InvalidQueryError()
-        if len(drill for drill in query.drilldowns if drill != "") == 0:
+        if len([drill for drill in query.drilldowns if drill != ""]) == 0:
             raise InvalidQueryError()
-
-        transform_limit = (
-            lambda x: ("{0}.{1}" if x[1] else "{0}").format(*x)
-            if x[0] is not None or x[1] is not None
-            else None
-        )
-        transform_sort = lambda x: "{0}.{1}".format(*x) if x[0] is not None else None
 
         all_params = {
             "captions[]": [
@@ -102,7 +102,7 @@ class TesseractServer(Server):
 
         params = {k: v for k, v in all_params.items() if is_valid_value(v)}
         search_params = parse.urlencode(params, True)
-        return f"{query.cube}/aggregate.{query.format}?{search_params}"
+        return f"cubes/{query.cube}/aggregate.{query.format}?{search_params}"
 
     @staticmethod
     def build_logiclayer_url(query: Query):
@@ -229,3 +229,11 @@ def is_valid_value(value):
     elif isinstance(value, str):
         return value != ""
     return value is not None
+
+def transform_limit(x):
+    return ("{0}.{1}" if x[1] else "{0}").format(*x)
+            if x[0] is not None or x[1] is not None
+            else None
+
+def transform_sort(x):
+    return "{0}.{1}".format(*x) if x[0] is not None else None
