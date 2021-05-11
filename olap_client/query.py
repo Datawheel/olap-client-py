@@ -5,13 +5,14 @@ from typing import DefaultDict, Optional, Set, Tuple
 
 from .exceptions import InvalidQueryError
 
-class QueryFormat(str, Enum):
-    """QueryFormat Enum
+class DataFormat(str, Enum):
+    """DataFormat Enum
 
-    Defines the format of the requested data.
+    Defines the response format of the requested data.
     """
     CSV = "csv"
     JSON = "json"
+    JSONARRAYS = "jsonarrays"
     JSONRECORDS = "jsonrecords"
     XLS = "xls"
 

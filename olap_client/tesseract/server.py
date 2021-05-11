@@ -5,11 +5,11 @@ from urllib import parse
 
 import httpx
 
-from ..cube import (Cube, Dimension, Hierarchy, Level, Measure, Member,
-                    NamedSet, Property)
-from ..exceptions import InvalidQueryError
+from ..query import DataFormat
 from ..server import Query, Server
-from .schema import TesseractEndpointType
+from .schema import (TesseractCube, TesseractDataFormat, TesseractEndpointType,
+                     TesseractSchema)
+
 
 class TesseractServer(Server):
     """Class for tesseract server requests.
@@ -26,8 +26,7 @@ class TesseractServer(Server):
         # For the time being, efforts will be focused on the logiclayer endpoint
         # elif self.endpoint == TesseractEndpointType.AGGREGATE:
         #     return TesseractServer.build_aggregate_url(query)
-        else:
-            raise KeyError()
+        raise KeyError("Endpoint \"{}\" is not available on Tesseract Servers" % self.endpoint)
 
     async def fetch_all_cubes(self):
         """Retrieves the list of available cubes from the server."""
@@ -36,7 +35,7 @@ class TesseractServer(Server):
             request = await client.get(url)
             request.raise_for_status()
             schema = request.json()
-        return list(cube_from_tesseract(cube) for cube in schema["cubes"])
+        return TesseractSchema.parse_obj(schema).cubes
 
     async def fetch_cube(self, cube_name: str):
         """Retrieves the information from a specific cube from the server."""
@@ -45,10 +44,13 @@ class TesseractServer(Server):
             request = await client.get(url)
             request.raise_for_status()
             raw_cube = request.json()
-        return cube_from_tesseract(raw_cube)
+        return TesseractCube.parse_obj(raw_cube)
 
-    async def fetch_members(self, cube_name: str, level_name: str, ext = Format.JSONRECORDS):
+    async def fetch_members(self, cube_name: str, level_name: str, ext = DataFormat.JSONRECORDS):
         """Retrieves the list of members for a level in a cube."""
+        if ext not in TesseractDataFormat:
+            raise KeyError("Format \"{}\" is not available on Tesseract Servers" % ext)
+
         url = parse.urljoin(self.base_url, "members.{}" % ext)
         search_params = {"cube": cube_name, "level": level_name}
         async with httpx.AsyncClient() as client:
@@ -140,80 +142,6 @@ class TesseractServer(Server):
 
         params = {k: v for k, v in all_params.items() if is_valid_value(v)}
         return f"data.{query.format}?{parse.urlencode(params)}"
-
-
-def cube_from_tesseract(cube):
-    return Cube(
-        annotations=cube.get("annotations", {}),
-        dimensions=list(
-            Dimension(
-                annotations=dim.get("annotations", {}),
-                default_hierarchy=dim["default_hierarchy"],
-                dimension_type=dim["type"],
-                full_name=join_name(dim["name"]),
-                hierarchies=list(
-                    Hierarchy(
-                        annotations=hie.get("annotations", {}),
-                        dimension=dim["name"],
-                        full_name=join_name(dim["name"], hie["name"]),
-                        levels=list(
-                            Level(
-                                annotations=lvl.get("annotations", {}),
-                                caption=lvl["name"],
-                                depth=depth,
-                                dimension=dim["name"],
-                                full_name=join_name(dim["name"], hie["name"], lvl["name"]),
-                                hierarchy=hie["name"],
-                                name=lvl["name"],
-                                properties=list(
-                                    Property(
-                                        annotations=lvl.get("annotations", {}),
-                                        dimension=dim["name"],
-                                        hierarchy=hie["name"],
-                                        level=lvl["name"],
-                                        name=prop["name"]
-                                    )
-                                    for prop in lvl["properties"])
-                                    if lvl["properties"] is not None
-                                    else [],
-                                unique_name=lvl["unique_name"],
-                            )
-                            for depth, lvl in enumerate(hie["levels"], 1)
-                        ),
-                        name=hie["name"],
-                    )
-                    for hie in dim["hierarchies"]
-                ),
-                name=dim["name"],
-            )
-            for dim in cube["dimensions"]
-        ),
-        measures=list(
-            Measure(
-                aggregator_type=mea["aggregator"]["name"],
-                annotations=mea.get("annotations", {}),
-                caption=mea["name"],
-                name=mea["name"],
-            )
-            for mea in cube["measures"]
-        ),
-        name=cube["name"],
-        namedsets=list(
-            NamedSet()
-            for nset in cube.get("named_sets", [])
-        ),
-    )
-
-
-def members_from_tesseract(members: List[dict], locale: str):
-    return [
-        Member(
-            caption=mem.get(f"{locale} Label") or mem.get("Label") or mem["ID"],
-            key=mem["ID"],
-            name=mem.get("Label") or mem["ID"],
-        )
-        for mem in members
-    ]
 
 
 def join_name(*parts):
