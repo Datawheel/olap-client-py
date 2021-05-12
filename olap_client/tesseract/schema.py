@@ -76,7 +76,7 @@ class TesseractDimension(Dimension):
             return DimensionType.TIME
         if value == TesseractDimensionType.GEO:
             return DimensionType.GEO
-        raise ValueError("Invalid dimension type \"{}\"" % value)
+        raise ValueError("Invalid dimension type \"%s\"" % value)
 
 
 # pylint: disable=E0213

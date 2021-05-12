@@ -28,7 +28,7 @@ class TesseractServer(Server):
         # For the time being, efforts will be focused on the logiclayer endpoint
         # elif self.endpoint == TesseractEndpointType.AGGREGATE:
         #     return TesseractServer.build_aggregate_url(query)
-        raise KeyError("Endpoint \"{}\" is not available on Tesseract Servers" % self.endpoint)
+        raise KeyError("Endpoint \"%s\" is not available on Tesseract servers" % self.endpoint)
 
     async def fetch_all_cubes(self):
         """Retrieves the list of available cubes from the server."""
@@ -41,7 +41,8 @@ class TesseractServer(Server):
 
     async def fetch_cube(self, cube_name: str):
         """Retrieves the information from a specific cube from the server."""
-        url = parse.urljoin(self.base_url, "cubes/{}" % cube_name)
+        url = parse.urljoin(self.base_url, "cubes/%s" % cube_name)
+
         async with httpx.AsyncClient() as client:
             request = await client.get(url)
             request.raise_for_status()
@@ -51,9 +52,9 @@ class TesseractServer(Server):
     async def fetch_members(self, cube_name: str, level_name: str, ext = DataFormat.JSONRECORDS):
         """Retrieves the list of members for a level in a cube."""
         if ext not in TesseractDataFormat:
-            raise KeyError("Format \"{}\" is not available on Tesseract Servers" % ext)
+            raise KeyError("Format \"%s\" is not available on Tesseract Servers" % ext)
 
-        url = parse.urljoin(self.base_url, "members.{}" % ext)
+        url = parse.urljoin(self.base_url, "members.%s" % ext)
         search_params = {"cube": cube_name, "level": level_name}
         async with httpx.AsyncClient() as client:
             request = await client.get(url, params=search_params)
