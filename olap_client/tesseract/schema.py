@@ -1,71 +1,39 @@
 """Tesseract OLAP's public schema data model definition."""
 
-from enum import Enum
+
 from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field, root_validator, validator
 
 from ..models import (Cube, Dimension, DimensionType, Hierarchy, Level,
                       Measure, Property)
-
-
-class TesseractAggregatorType(str, Enum):
-    """Tesseract's Measure Aggregator type enumeration class."""
-    SUM = "sum"
-    COUNT = "count"
-    AVERAGE = "avg"
-    MAX = "max"
-    MIN = "min"
-    BASICGROUPEDMEDIAN = "basic_grouped_median"
-    WEIGHTEDAVERAGE = "weighted_average"
-    WEIGHTEDSUM = "weighted_sum"
-    REPLICATEWEIGHTMOE = "Replicate Weight MOE"
-    MOE = "MOE"
-    WEIGHTEDAVERAGEMOE = "weighted_average_moe"
-    CUSTOM = "custom"
-    UNKNOWN = "unknown"
-
-
-class TesseractDataFormat(str, Enum):
-    """Tesseract's available data format enumeration class."""
-    CSV = "csv"
-    JSONARRAYS = "jsonarrays"
-    JSONRECORDS = "jsonrecords"
-
-
-class TesseractDimensionType(str, Enum):
-    """Tesseract's Dimension type enumeration class."""
-    GEO = "geo"
-    TIME = "time"
-    STANDARD = "standard"
-
-
-class TesseractEndpointType(str, Enum):
-    """Tesseract's endpoint type enumeration class."""
-    AGGREGATE = "aggregate"
-    LOGICLAYER = "logiclayer"
+from .enum import TesseractAggregatorType, TesseractDimensionType
+from .query import TesseractQuery
 
 
 class TesseractSchema(BaseModel):
     """Main parser class for Tesseract OLAP public schemas."""
     name: str
     cubes: List["TesseractCube"]
-    annotations: Optional[Dict[str, str]]
+    annotations: Optional[Dict[str, str]] = Field(default_factory=dict)
 
 
 class TesseractCube(Cube):
     """Model for a Cube from a Tesseract OLAP server."""
     alias: Optional[List[str]]
-    dimensions: List["TesseractDimension"] = []
-    measures: List["TesseractMeasure"] = []
+    dimensions: List["TesseractDimension"] = Field(default_factory=list)
+    measures: List["TesseractMeasure"] = Field(default_factory=list)
     min_auth_level: int
+
+    def new_query(self):
+        return TesseractQuery(self)
 
 
 # pylint: disable=E0213
 class TesseractDimension(Dimension):
     """Model for a Dimension from a Tesseract OLAP server."""
-    dimension_type: str = Field(..., alias="type")
-    hierarchies: List["TesseractHierarchy"] = []
+    dimension_type: DimensionType = Field(..., alias="type")
+    hierarchies: List["TesseractHierarchy"] = Field(default_factory=list)
 
     @validator("dimension_type")
     def map_dimension_type(cls, value: str):
@@ -94,13 +62,27 @@ class TesseractHierarchy(Hierarchy):
 
 class TesseractLevel(Level):
     """Model for a Level from a Tesseract OLAP server."""
-    properties: List["TesseractProperty"] = []
+    name: str
+    properties: List["TesseractProperty"] = Field(default_factory=list)
+    unique_name: Optional[str]
+
+    def matches(self, name: str):
+        """Checks if this instance matches a certain name."""
+        return name in (self.name, self.unique_name)
 
 
 class TesseractProperty(Property):
     """Model for a Level Property from a Tesseract OLAP server."""
     caption_set: Optional[str]
+    name: str
     unique_name: Optional[str]
+
+    def __hash__(self):
+        return hash(self.unique_name or self.name)
+
+    def matches(self, name: str):
+        """Checks if this instance matches a certain name."""
+        return name in (self.name, self.unique_name)
 
 
 class TesseractMeasureTypeStandard(BaseModel):

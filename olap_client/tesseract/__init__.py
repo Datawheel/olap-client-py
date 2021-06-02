@@ -7,6 +7,7 @@ the rules of Olap Client.
 __all__ = (
     "TesseractAggregatorType",
     "TesseractCube",
+    "TesseractDataFormat",
     "TesseractDimension",
     "TesseractDimensionType",
     "TesseractEndpointType",
@@ -18,8 +19,9 @@ __all__ = (
     "TesseractServer",
 )
 
+from .enum import TesseractDataFormat, TesseractEndpointType
 from .schema import (TesseractAggregatorType, TesseractCube,
                      TesseractDimension, TesseractDimensionType,
-                     TesseractEndpointType, TesseractHierarchy, TesseractLevel,
-                     TesseractMeasure, TesseractProperty, TesseractSchema)
+                     TesseractHierarchy, TesseractLevel, TesseractMeasure,
+                     TesseractProperty, TesseractSchema)
 from .server import TesseractServer

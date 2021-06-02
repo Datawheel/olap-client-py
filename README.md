@@ -1,6 +1,6 @@
 # python-olap-client (name in progress)
 
-The pythonic cousin of [olap-client](https://github.com/Datawheel/olap-client).
+An agnostic client to interact with OLAP servers.
 
 ## License
 

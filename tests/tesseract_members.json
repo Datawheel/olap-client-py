@@ -1,0 +1,11 @@
+{
+  "data": [
+    {"ID":1, "Label":"Sin Información"},
+    {"ID":2, "Label":"Sin Erosión"},
+    {"ID":3, "Label":"Ligera"},
+    {"ID":4, "Label":"Moderada"},
+    {"ID":5, "Label":"Severa"},
+    {"ID":6, "Label":"Muy Severa"},
+    {"ID":99, "Label":"No Corresponde"}
+  ]
+}

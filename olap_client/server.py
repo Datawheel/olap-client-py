@@ -44,14 +44,14 @@ class Server:
         """
         raise NotImplementedError
 
-    async def fetch_members(self, cube_name: str, level_name: str, ext: str):
+    async def fetch_members(self, *args, **kwargs):
         """Retrieves the list of members for a level in a cube.
 
         Needs to be implemented by each server subclass.
         """
         raise NotImplementedError
 
-    async def query(self, query: Query):
+    async def exec_query(self, query: Query):
         """Makes a request for the data specified in the Query object."""
         url = parse.urljoin(self.base_url, self.build_query_url(query))
         async with httpx.AsyncClient() as client:
