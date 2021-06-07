@@ -121,6 +121,7 @@ class TesseractQuery(Query):
         if endpoint == TesseractEndpointType.LOGICLAYER:
             return build_logiclayer_url(self)
 
+        # For the time being, efforts will be focused on the logiclayer endpoint
         raise KeyError("Aggregate endpoint is not yet fully supported")
 
 

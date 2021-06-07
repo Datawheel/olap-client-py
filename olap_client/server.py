@@ -57,4 +57,4 @@ class Server:
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
         response.raise_for_status()
-        return response.json() if "json" in query.format else response.content
+        return response.json() if "json" in query.extension else response.content
