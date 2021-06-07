@@ -26,12 +26,7 @@ class TesseractServer(Server):
 
     def build_query_url(self, query: "TesseractQuery"):
         """Converts the Query object into an URL for Tesseract OLAP."""
-        if self.endpoint == TesseractEndpointType.LOGICLAYER:
-            return str(query)
-        # For the time being, efforts will be focused on the logiclayer endpoint
-        # elif self.endpoint == TesseractEndpointType.AGGREGATE:
-        #     return TesseractServer.build_aggregate_url(query)
-        raise KeyError("Endpoint \"%s\" is not available on Tesseract servers" % self.endpoint)
+        return query.get_url(self.endpoint)
 
     async def fetch_all_cubes(self):
         """Retrieves the list of available cubes from the server."""

@@ -106,7 +106,7 @@ class Query:
     cube: "Cube"
     cuts: DefaultDict[str, Cut]
     drilldowns: DefaultDict[str, Drilldown]
-    extension: str = DataFormat.JSONRECORDS
+    extension: DataFormat = DataFormat.JSONRECORDS
     filters: DefaultDict[str, Filter]
     locale: Optional[str]
     measures: Set["Measure"]
@@ -142,7 +142,7 @@ class Query:
         if len(self.measures) == 0:
             raise InvalidQueryError("There are no measures in this query")
 
-    def add_calculation(self, calc: Union[str, Calculation], **kwargs):
+    def add_calculation(self, calc: Union[str, Calculation], **kwargs) -> "Query":
         """Adds a calculation request to the query.
 
         The kind is the keyword that determines how each Server instance will
@@ -153,14 +153,16 @@ class Query:
         if not isinstance(calc, Calculation):
             calc = Calculation(kind=calc, params=kwargs)
         self.calculations.append(calc)
+        return self
 
-    def add_measure(self, measure_name: str):
+    def add_measure(self, measure_name: str)  -> "Query":
         """Defines a measure in the Query.
         """
         measure = self.cube.get_measure(measure_name)
         self.measures.add(measure)
+        return self
 
-    def set_cut(self, level_name: str, members: List[str], is_exclusive: bool = None, is_for_match: bool = None):
+    def set_cut(self, level_name: str, members: List[str], is_exclusive: bool = None, is_for_match: bool = None)  -> "Query":
         """Defines a cut in the Query.
 
         Calling this function multiple times using the same level will overwrite
@@ -179,32 +181,37 @@ class Query:
             cut.is_for_match = is_for_match
         if len(members) > 0:
             cut.members.update(members)
+        return self
 
-    def set_drilldown(self, level_name: str):
+    def set_drilldown(self, level_name: str)  -> "Query":
         """Defines a drilldown in the query.
         """
         level = self.cube.get_level(level_name)
         drill = self.drilldowns[level.dimension]
         drill.level = level
+        return self
 
-    def set_caption(self, property_name: str):
+    def set_caption(self, property_name: str)  -> "Query":
         """Defines a caption for its associated level.
         """
         propty = self.cube.get_property(property_name)
         drill = self.drilldowns[propty.dimension]
         drill.caption = propty
+        return self
 
-    def set_property(self, property_name: str):
+    def set_property(self, property_name: str)  -> "Query":
         """Defines a drilldown property in the query.
         """
         propty = self.cube.get_property(property_name)
         drill = self.drilldowns[propty.dimension]
         drill.properties.add(propty)
+        return self
 
-    def set_extension(self, extension: str):
+    def set_extension(self, extension: DataFormat)  -> "Query":
         """Defines the format the data will be returned as.
         """
         self.extension = extension
+        return self
 
     def set_filter(
         self,
@@ -212,7 +219,7 @@ class Query:
         condition1: Tuple[str, int],
         joint=None,
         condition2: Tuple[str, int] = None,
-    ):
+    ) -> "Query":
         """Defines a measure filter in the query.
         """
         measure = next((item for item in self.cube.measures if item.name == value_ref), None)
@@ -223,33 +230,39 @@ class Query:
         filtr.constraint1 = condition1
         filtr.joint = joint
         filtr.constraint2 = condition2
+        return self
 
-    def set_locale(self, locale: str):
+    def set_locale(self, locale: str)  -> "Query":
         """Defines the language of the response data for the query.
         """
         self.locale = locale
+        return self
 
-    def set_option(self, prop: str, value: bool):
+    def set_option(self, prop: str, value: bool)  -> "Query":
         """Defines a boolean option for the query.
 
         The validity of each option is verified by the server. Invalid options
         are ignored silently.
         """
         self.options[prop] = bool(value)
+        return self
 
-    def set_pagination(self, page: int, offset: int = 0):
+    def set_pagination(self, page: int, offset: int = 0)  -> "Query":
         """Defines the pagination for the resulting data of the query.
         """
         self.pagination = (page, offset)
+        return self
 
-    def set_sorting(self, sort_key: str, order="desc"):
+    def set_sorting(self, sort_key: str, order="desc")  -> "Query":
         """Defines the sorting for the resulting data of the query.
         """
         measure = self.cube.get_measure(sort_key)
         self.sorting = (measure.name, order)
+        return self
 
-    def set_time(self, precision: str, value: str):
+    def set_time(self, precision: str, value: str)  -> "Query":
         """Defines the time restriction for the query.
         """
         new_time = (precision, value)
         self.time = new_time if None not in new_time else (None, None)
+        return self
