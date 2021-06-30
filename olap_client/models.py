@@ -28,7 +28,7 @@ class Cube(BaseModel):
 
     @property
     def hierarchies(self):
-        """Generates an iterator for all the child Levels in this cube."""
+        """Generates an iterator for all the child Hierarchies in this cube."""
         for dimension in self.dimensions:
             for hierarchy in dimension.hierarchies:
                 yield hierarchy
@@ -85,8 +85,8 @@ class Dimension(BaseModel):
     name: str
 
     @root_validator(pre=True)
-    def inyect_parents(cls, dimension: dict):
-        """Inyects the dimension name to each child hierachy."""
+    def inject_parents(cls, dimension: dict):
+        """Injects the dimension name to each child hierachy."""
         for hierarchy in dimension.get("hierarchies", []):
             hierarchy["dimension"] = dimension["name"]
         return dimension
@@ -127,8 +127,8 @@ class Hierarchy(BaseModel):
     name: str
 
     @root_validator(pre=True)
-    def inyect_parents(cls, hierarchy: dict):
-        """Inyects the dimension and hierachy names to each child level."""
+    def inject_parents(cls, hierarchy: dict):
+        """Injects the dimension and hierachy names to each child level."""
         for level in hierarchy.get("levels", []):
             level["dimension"] = hierarchy["dimension"]
             level["hierarchy"] = hierarchy["name"]
@@ -165,8 +165,8 @@ class Level(BaseModel):
     properties: List["Property"] = Field(default_factory=list)
 
     @root_validator(pre=True)
-    def inyect_parents(cls, level: dict):
-        """Inyects the dimension, hierachy, and level names to each child property."""
+    def inject_parents(cls, level: dict):
+        """Injects the dimension, hierachy, and level names to each child property."""
         level["properties"] = level.get("properties", None) or []
         for propty in level["properties"]:
             propty["dimension"] = level["dimension"]

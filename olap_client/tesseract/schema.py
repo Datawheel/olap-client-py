@@ -53,8 +53,8 @@ class TesseractHierarchy(Hierarchy):
     levels: List["TesseractLevel"]
 
     @validator("levels", pre=True)
-    def inyect_level_depth(cls, levels: List[dict]):
-        """Inyects the level depth value into a level."""
+    def inject_level_depth(cls, levels: List[dict]):
+        """Injects the level depth value into a level."""
         for index, level in enumerate(levels, 1):
             level["depth"] = index
         return levels

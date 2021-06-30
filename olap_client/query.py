@@ -247,10 +247,10 @@ class Query:
         self.options[prop] = bool(value)
         return self
 
-    def set_pagination(self, page: int, offset: int = 0)  -> "Query":
+    def set_pagination(self, limit: int, offset: int = 0)  -> "Query":
         """Defines the pagination for the resulting data of the query.
         """
-        self.pagination = (page, offset)
+        self.pagination = (limit, offset)
         return self
 
     def set_sorting(self, sort_key: str, order="desc")  -> "Query":

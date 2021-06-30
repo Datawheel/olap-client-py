@@ -51,10 +51,10 @@ class Server:
         """
         raise NotImplementedError
 
-    async def exec_query(self, query: Query):
+    async def exec_query(self, query: Query, timeout_sec=10):
         """Makes a request for the data specified in the Query object."""
         url = parse.urljoin(self.base_url, self.build_query_url(query))
         async with httpx.AsyncClient() as client:
-            response = await client.get(url)
+            response = await client.get(url, timeout=timeout_sec)
         response.raise_for_status()
         return response.json() if "json" in query.extension else response.content

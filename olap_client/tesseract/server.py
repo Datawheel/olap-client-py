@@ -74,7 +74,7 @@ class TesseractServer(Server):
         if extension not in TesseractDataFormat:
             raise KeyError("Format \"%s\" is not available on Tesseract Servers" % extension)
 
-        url = parse.urljoin(self.base_url, "members.%s" % extension)
+        url = parse.urljoin(self.base_url, "members.{}".format(extension))
 
         search_params = {"cube": cube_name, "level": level_name}
         if locale is not None:
